@@ -1,0 +1,13 @@
+---
+- hosts: {{server}}
+  tasks:
+# Apply updates and reboot if necessary
+  # - name: Performing Windows updates...
+  #   win_updates:
+  #   register: update_result
+
+  # - debug: var={{update.result.stdout_lines}}
+
+  - win_reboot:
+    msg: Rebooting the server as it is required after updating...
+    #when: update_result.reboot_required

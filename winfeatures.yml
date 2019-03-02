@@ -1,0 +1,16 @@
+---
+- hosts: win_dc
+  gather_facts: no
+  tasks:
+  - name: Pulling encyrpted password information from winvault file
+    include_vars: winvault
+    no_log: true
+
+  - name: Install AD DS and AD LDS Tools Feature on Domain Controllers
+    win_feature:
+    #To get full list of names you can do Get-WindowsFeatuer * in Powershell
+      name: 
+      - RSAT-AD-AdminCenter
+      - RSAT-ADDS-Tools
+      - RSAT-ADLDS
+      state: present  

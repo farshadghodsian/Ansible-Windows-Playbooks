@@ -1,0 +1,8 @@
+#Start PowerShell with Admin Privileges and run slmgr to see how many Rearms you have left (usally 6).
+slmgr -dlv
+
+#When the period comes to an end, run slmgr -rearm to extend it by another 180 days.
+slmgr -rearm
+
+#Restart-Computer. Once restarted, open PowerShell and check your settings.
+slmgr -dli

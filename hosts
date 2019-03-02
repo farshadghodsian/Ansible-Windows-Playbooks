@@ -1,0 +1,54 @@
+[all]
+ansible-server ansible_ssh_host=192.168.56.101
+web1 ansible_ssh_host=192.168.56.103
+web2 ansible_ssh_host=192.168.56.104
+db1 ansible_ssh_host=192.168.56.203
+db2 ansible_ssh_host=192.168.56.204
+weblogic1 ansible_ssh_host=192.168.56.105
+winad1 ansible_ssh_host=192.168.56.102
+winweb1 ansible_ssh_host=192.168.56.106
+winweb2
+
+###LINUX SERVERS###
+[web]
+web1
+web2
+
+[db]
+db1
+db2
+
+[weblogic]
+weblogic1
+
+[ansible]
+ansible-server
+ansible-awx
+
+###WINDOWS SERVERS###
+[windows:children]
+win_dc
+win_web
+
+[win_dc]
+winad1
+
+[win_web]
+winweb1
+winweb2
+
+[windows:vars]
+#Tell Ansible to communicate of WinRM and use HTTPS port 5986
+ansible_connection=winrm
+ansible_port=5986
+
+#Setting server certificate validation flag to ignore for self-signed cert in DEV only
+ansible_winrm_server_cert_validation=ignore 
+
+#Ansible user account to use for windows machines
+ansible_user=pfleming
+
+#Using Certificate Authentication
+#ansible_winrm_cert_pem=/etc/ansible/certificate/cert.pem
+#ansible_winrm_cert_key_pem=/etc/ansible/certificate/key.pem
+#ansible_winrm_transport=certificate

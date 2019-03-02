@@ -1,0 +1,21 @@
+---
+  domainusers:
+  - name: jdoe
+    firstname: John
+    surname: Doe
+      
+  - name: kconway
+    firstname: Kennedy
+    surname: Conway
+  
+  - name: jwhitney
+    firstname: Julien
+    surname: Whitney
+
+  - name: kcallaghan
+    firstname: Kamran
+    surname: Callaghan
+
+  - name: pstanton
+    firstname: Patricia
+    surname: Stanton

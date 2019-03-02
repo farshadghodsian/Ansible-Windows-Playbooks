@@ -1,0 +1,25 @@
+---
+- hosts: windows
+  gather_facts: no
+
+  tasks:
+  # Use winvault encrypted file for domain password and enable no_logging so password doesn't show in command output
+  - include_vars: winvault
+    no_log: True
+
+  - name: Setting Server DNS...
+    win_dns_client:
+      adapter_names: '*'
+      ipv4_addresses: 192.168.56.102
+
+  - name: Joining Servers to dev.local...
+    win_domain_membership:
+      dns_domain_name: dev.local
+      domain_admin_user: dev\Administrator
+      domain_admin_password: "{{ domain_admin_pass }}"
+      state: domain
+    register: domain_join_output
+
+  - name: Reboot Server if required after joining...
+    win_reboot:
+    when: domain_join_output.reboot_required

@@ -1,0 +1,107 @@
+---
+- hosts: windows
+  gather_facts: no
+  
+  tasks:
+  - name: Pulling encyrpted password information from winvault file
+    include_vars: winvault
+    no_log: true
+  - name: Ensure local admin user is present on all Windows servers
+    win_user:
+      name: locadmin
+      password: "{{default_pass}}"
+      state: present
+      account_disabled: yes
+      groups:
+        - Administrators
+
+- hosts: win_dc
+  gather_facts: no
+
+  tasks:
+  - name: Pulling encyrpted password information from winvault file
+    include_vars: winvault
+    no_log: true
+
+  - name: Grabbing Domain Admin Users from domainusers.yml file
+    include_vars: domainusers.yml
+
+  - name: Change the hostname of Domain Controlelrs to match Inventory file
+    win_hostname:
+      name: "{{inventory_hostname}}"
+    register: domain_rename
+
+  - name: Reboot if Domain Controller hostname was changed
+    win_reboot:
+    when: domain_rename.reboot_required
+  
+  #Create a domain if one doesnt exist alredy and promote server to Domain Controller
+  - name: Creating dev.local domain...
+    win_domain:
+      dns_domain_name: dev.local
+      safe_mode_password: "{{domain_safe_pass}}"
+    register: domain_output
+
+  - name: Install AD DS and AD LDS Tools Feature on Domain Controllers
+    win_feature:
+    #To get full list of names you can do Get-WindowsFeature * in Powershell
+      name: 
+      - RSAT-AD-AdminCenter
+      - RSAT-ADDS-Tools
+      - RSAT-ADLDS
+      state: present    
+
+  - name: Reboot after Domain Controller promotion if required
+    win_reboot:
+    when: domain_output.reboot_required
+
+  #Create Domain Admin users contained in domainusers.yml file
+  - name: Add Windows Sysadmins to Domain Admins group
+    win_domain_user:
+      name: "{{item.name}}"
+      firstname: "{{item.firstname}}"
+      surname: "{{item.surname}}"
+      password: "{{default_pass}}"
+      password_expired: yes
+      update_password: on_create
+      state: present
+      groups:
+        - Domain Admins
+    with_items: '{{domainusers}}'
+
+#Join rest of servers to new domain
+- hosts: windows
+  gather_facts: no
+  
+  tasks:
+  - name: Pulling encyrpted password information from winvault file
+    include_vars: winvault
+    no_log: true
+
+  - name: Setting Server DNS...
+    win_dns_client:
+      adapter_names: '*'
+      ipv4_addresses: 192.168.56.102
+
+  - name: Joining Servers to dev.local...
+    win_domain_membership:
+      dns_domain_name: dev.local
+      domain_admin_user: dev\Administrator
+      domain_admin_password: "{{ domain_admin_pass }}"
+      hostname: "{{ inventory_hostname }}"
+      state: domain
+    register: domain_join_output
+
+  - name: Reboot Server if required after joining...
+    win_reboot:
+    when: domain_join_output.reboot_required
+
+    #Example install of an msi package or exe
+  - name: Install putty and use a file version for the installation check
+    win_package:
+      path: 'C:\packages\putty-64bit-0.70-installer.msi'
+      creates_path: C:\Program Files\Putty
+      creates_version: 0.70
+      state: present
+    tags:
+    - putty

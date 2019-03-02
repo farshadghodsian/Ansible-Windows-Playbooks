@@ -1,0 +1,11 @@
+---
+- hosts: win2016
+  gather_facts: no
+  tasks:
+    - name: Check if service is running
+      win_service:
+        name: spooler
+      register: service_info
+
+    #- debug: 
+    #  msg: "{{ service_info.stdout_lines }}"
